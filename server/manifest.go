@@ -14,7 +14,6 @@ import (
 )
 
 type Manifest struct {
-	SchemaVersion int      `json:"schemaVersion"`
 	MediaType     string   `json:"mediaType"`
 	Config        *Layer   `json:"config"`
 	Layers        []*Layer `json:"layers"`
@@ -111,7 +110,6 @@ func WriteManifest(name model.Name, config *Layer, layers []*Layer) error {
 	defer f.Close()
 
 	m := Manifest{
-		SchemaVersion: 2,
 		MediaType:     "application/vnd.docker.distribution.manifest.v2+json",
 		Config:        config,
 		Layers:        layers,
