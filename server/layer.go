@@ -96,7 +96,7 @@ func (l *Layer) Remove() error {
 	}
 
 	for _, m := range ms {
-		for _, layer := range append(m.Layers, m.Config) {
+		for _, layer := range append(m.Layers, &m.Config) {
 			if layer.Digest == l.Digest {
 				// something is using this layer
 				return nil

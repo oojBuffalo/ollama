@@ -14,9 +14,9 @@ import (
 )
 
 type Manifest struct {
-	MediaType     string   `json:"mediaType"`
-	Config        *Layer   `json:"config"`
-	Layers        []*Layer `json:"layers"`
+	MediaType string   `json:"mediaType"`
+	Config    Layer    `json:"config"`
+	Layers    []*Layer `json:"layers"`
 
 	filepath string
 	fi       os.FileInfo
@@ -24,7 +24,7 @@ type Manifest struct {
 }
 
 func (m *Manifest) Size() (size int64) {
-	for _, layer := range append(m.Layers, m.Config) {
+	for _, layer := range append(m.Layers, &m.Config) {
 		size += layer.Size
 	}
 
@@ -45,7 +45,13 @@ func (m *Manifest) Remove() error {
 }
 
 func (m *Manifest) RemoveLayers() error {
-	for _, layer := range append(m.Layers, m.Config) {
+	layers := m.Layers
+
+	if m.Config.Digest != "" {
+		layers = append(layers, &m.Config)
+	}
+
+	for _, layer := range layers {
 		if err := layer.Remove(); errors.Is(err, os.ErrNotExist) {
 			slog.Debug("layer does not exist", "digest", layer.Digest)
 		} else if err != nil {
@@ -110,9 +116,9 @@ func WriteManifest(name model.Name, config *Layer, layers []*Layer) error {
 	defer f.Close()
 
 	m := Manifest{
-		MediaType:     "application/vnd.docker.distribution.manifest.v2+json",
-		Config:        config,
-		Layers:        layers,
+		MediaType: "application/vnd.docker.distribution.manifest.v2+json",
+		Config:    *config,
+		Layers:    layers,
 	}
 
 	return json.NewEncoder(f).Encode(m)
